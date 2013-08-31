@@ -84,4 +84,7 @@ another box to compare to search results our example is trivial.
     cocomp.set "another_box", moreBoxes
     cocomp.set "search", searchResults
     
-    
+
+
+
+Copyright (c) 2013 David Biehl. This software is licensed under the MIT License.    
