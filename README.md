@@ -83,8 +83,39 @@ another box to compare to search results our example is trivial.
     cocomp.set "box", boxes
     cocomp.set "another_box", moreBoxes
     cocomp.set "search", searchResults
+
+    # In the view, listen for the cocomp events on another box
+
+    @listenTo @model, 'cocomp:in:box cocomp:in:another_box', @onInBox
+    @listenTo @model, 'cocomp:out:box cocomp:in:another_box', @onOutBox
+
+## The Events
+
+The events are triggered on each model in each collection. There are basically
+two types of events that will be triggered: `cocomp:in` and `cocomp:out`.
+
+* `cocomp:in`  - triggered when the model exists, or is added to, another
+                 collection
+* `cocomp:out` - triggered when the model doesn't exists, or is removed
+                 from another collection
+
+If there are only two collections `set` on your CoComp instance, it may be 
+sufficient to listen to these events. However, a more specific event is also
+triggered that indicates the name of the collection the model was being
+compared to. 
+
+In the example above, we `set` a "box" collection and a "search"
+collection.
     
+    cocomp.set "box", boxes
+    cocomp.set "search", searchResults
 
+Then, in the `SearchResultView` we listen for the `cocomp:in:box` and
+the `cocomp:out:box` events. This way we can fine-tune our event handlers
+based on the collection the model is being compared to. Likewise, the models 
+in the "box" collection will receive `cocomp:in:search` and 
+`cocomp:out:search` events.
 
+##### License
 
 Copyright (c) 2013 David Biehl. This software is licensed under the MIT License.    
