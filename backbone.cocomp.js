@@ -66,21 +66,19 @@
     };
 
     CoComp.prototype._compareToCollection = function(aModel, b, options) {
-      var aName, bName, inCollection, inEvent, outEvent,
+      var aName, bName, inCollection, inEvent,
         _this = this;
       if (options == null) {
         options = {};
       }
-      if (aModel.collection !== b) {
+      aName = options.modelCollectionName || this._collectionName(aModel.collection);
+      bName = options.collectionName || this._collectionName(b);
+      if (aName !== bName) {
         if (options.reverse) {
-          inEvent = "cocomp-out";
-          outEvent = "cocomp-in";
+          inEvent = "cocomp:out";
         } else {
-          inEvent = "cocomp-in";
-          outEvent = "cocomp-out";
+          inEvent = "cocomp:in";
         }
-        aName = options.modelCollectionName || this._collectionName(aModel.collection);
-        bName = options.collectionName || this._collectionName(b);
         inCollection = false;
         b.forEach(function(bModel) {
           var exists;
@@ -91,8 +89,8 @@
           return inCollection = inCollection || exists;
         });
         if (!inCollection) {
-          aModel.trigger("" + outEvent + ":" + bName);
-          return aModel.trigger("" + outEvent);
+          aModel.trigger("cocomp:out:" + bName);
+          return aModel.trigger("cocomp:out");
         }
       }
     };

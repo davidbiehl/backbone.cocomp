@@ -95,16 +95,14 @@ class Backbone.CoComp
   #                         comparator results in true. This is probably only needed
   #                         when removing something from a list
   _compareToCollection: (aModel, b, options = {})->
-    if aModel.collection != b
+    aName = options.modelCollectionName || @_collectionName(aModel.collection)
+    bName = options.collectionName || @_collectionName(b)
+    
+    if aName != bName
       if options.reverse
-        inEvent = "cocomp-out"
-        outEvent = "cocomp-in"
+        inEvent = "cocomp:out"
       else
-        inEvent = "cocomp-in"
-        outEvent = "cocomp-out"
-
-      aName = options.modelCollectionName || @_collectionName(aModel.collection)
-      bName = options.collectionName || @_collectionName(b)
+        inEvent = "cocomp:in"
 
       inCollection = false
       b.forEach (bModel)=>
@@ -112,8 +110,8 @@ class Backbone.CoComp
         inCollection = inCollection || exists
 
       unless inCollection
-        aModel.trigger "#{outEvent}:#{bName}"
-        aModel.trigger "#{outEvent}"
+        aModel.trigger "cocomp:out:#{bName}"
+        aModel.trigger "cocomp:out"
 
 
   # Private: Compare two models and trigger the event specified if
@@ -134,7 +132,7 @@ class Backbone.CoComp
   _compareOne: (a, b, event, options = {})=>
     aName = options.aName || @_collectionName(a.collection)
     bName = options.bName || @_collectionName(b.collection)
-
+    
     obj = {}
     obj[aName] = a
     obj[bName] = b
