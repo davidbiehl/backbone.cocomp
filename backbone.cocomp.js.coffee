@@ -1,4 +1,4 @@
-c: An event based collection comparison utility
+# An event based collection comparison utility
 #
 # The need to synchronize two different backbone collections
 # came about when we had search results, and a category a user
