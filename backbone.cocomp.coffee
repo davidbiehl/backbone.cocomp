@@ -1,4 +1,12 @@
+###! 
+Backbone.CoComp v0.0.3
+(c) 2013 David Biehl
+Backbone.CoComp may be freely distributed under the MIT license.
+For all details and documentation:
+https://github.com/davidbiehl/backbone.cocomp
+###
 # An event based collection comparison utility
+#
 #
 # The need to synchronize two different backbone collections
 # came about when we had search results, and a category a user
