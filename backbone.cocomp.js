@@ -26,9 +26,6 @@ https://github.com/davidbiehl/backbone.cocomp
       if (options == null) {
         options = {};
       }
-      if (!_.has(options, "compare")) {
-        options.compare = true;
-      }
       if (this._collections[name]) {
         this.stopListening(this._collections[name]);
       }
@@ -36,7 +33,7 @@ https://github.com/davidbiehl/backbone.cocomp
       this.listenTo(this._collections[name], 'reset', this.compare);
       this.listenTo(this._collections[name], 'add', this._onAdd);
       this.listenTo(this._collections[name], 'remove', this._onRemove);
-      if (options.compare) {
+      if (!options.silent) {
         return this.compare();
       }
     };

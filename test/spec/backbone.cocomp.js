@@ -32,7 +32,6 @@
     describe("#unset", function() {
       it("removes the collection", function() {
         cocomp.set("box1", box1);
-        expect(cocomp._collections.box1).toBeDefined();
         cocomp.unset("box1");
         return expect(cocomp._collections.box1).toBeUndefined();
       });
@@ -50,6 +49,29 @@
         });
         return it("isn't triggered when called with `silent: true`", function() {
           cocomp.unset("box1", {
+            silent: true
+          });
+          return expect(spy.callback).not.toHaveBeenCalled();
+        });
+      });
+    });
+    describe("#set", function() {
+      it("adds the collection", function() {
+        cocomp.set("box1", box1);
+        return expect(cocomp._collections.box1).toBe(box1);
+      });
+      return describe("the event", function() {
+        beforeEach(function() {
+          cocomp.set("box1", box1);
+          box1.add(model);
+          return model.on('cocomp:out:box2', spy.callback);
+        });
+        it("is triggered", function() {
+          cocomp.set("box2", box2);
+          return expect(spy.callback).toHaveBeenCalled();
+        });
+        return it("isn't triggered when called with `silent: true`", function() {
+          cocomp.set("box2", box2, {
             silent: true
           });
           return expect(spy.callback).not.toHaveBeenCalled();

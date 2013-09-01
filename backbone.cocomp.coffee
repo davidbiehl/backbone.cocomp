@@ -59,11 +59,9 @@ class Backbone.CoComp
   # name - the name of the collection for CoComp purposes
   # collection - the backbone collection
   # options
-  #   compare - a boolean value indicating whether or not a comparison should
-  #             be executed immediately. Defaults to true
+  #   silent - a boolean value indicating whether or not a comparison should
+  #             be executed immediately. Defaults to false
   set: (name, collection, options = {})->
-    options.compare = true unless _.has(options, "compare")
-
     @stopListening @_collections[name] if @_collections[name]
     @_collections[name] = collection
 
@@ -71,7 +69,7 @@ class Backbone.CoComp
     @listenTo @_collections[name], 'add', @_onAdd
     @listenTo @_collections[name], 'remove', @_onRemove
 
-    @compare() if options.compare
+    @compare() unless options.silent
 
   # Public: Remove a collection from the comparisons
   # 

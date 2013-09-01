@@ -24,10 +24,10 @@ describe "Backbone.CoComp", ->
         new Backbone.CoComp
       expect(instanciate).toThrow()
 
+
   describe "#unset", ->
     it "removes the collection", ->
       cocomp.set "box1", box1
-      expect(cocomp._collections.box1).toBeDefined()
       cocomp.unset "box1"
       expect(cocomp._collections.box1).toBeUndefined()
 
@@ -49,6 +49,27 @@ describe "Backbone.CoComp", ->
         cocomp.unset "box1", silent: true
         expect(spy.callback).not.toHaveBeenCalled()
   
+
+  describe "#set", ->
+    it "adds the collection", ->
+      cocomp.set "box1", box1
+      expect(cocomp._collections.box1).toBe(box1)
+
+    describe "the event", ->
+      beforeEach ->
+        cocomp.set "box1", box1
+        box1.add model
+        model.on 'cocomp:out:box2', spy.callback
+
+      it "is triggered", ->
+        cocomp.set "box2", box2
+        expect(spy.callback).toHaveBeenCalled()
+
+      it "isn't triggered when called with `silent: true`", ->
+        cocomp.set "box2", box2, silent: true
+        expect(spy.callback).not.toHaveBeenCalled()
+ 
+
   describe "the event system", ->
     beforeEach ->
       cocomp.set "box1", box1
