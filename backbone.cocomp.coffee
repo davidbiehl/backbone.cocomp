@@ -1,5 +1,5 @@
 ###! 
-Backbone.CoComp v0.0.3
+Backbone.CoComp v0.0.4
 (c) 2013 David Biehl
 Backbone.CoComp may be freely distributed under the MIT license.
 For all details and documentation:
@@ -73,16 +73,43 @@ class Backbone.CoComp
 
     @compare() if options.compare
 
+  # Public: Remove a collection from the comparisons
+  # 
+  # name - the name of the collection to remove
+  unset: (name, options = {})->
+    collection = @_collections[name] 
+    return unless collection
+
+    @_compareCollection(collection, collectionName: name, reverse: true) unless options.silent
+
+    delete @_collections[name]
+
   # Public: Compare all of the models in all of the collections
   #
   # This will trigger either `cocomp-in` or `cocomp-out` events
   # for each model in each collection
   compare: ->
     for aName, a of @_collections
-      for bName, b of @_collections
-        if aName != bName
-          a.forEach (aModel)=>
-            @_compareToCollection(aModel, b, modelCollectionName: aName, collectionName: bName)
+      @_compareCollection(a, collectionName: aName)
+
+
+  # Public: Compare a single collection to the other collections
+  # 
+  # collection - the collection that should be compared
+  # options
+  #   collectionName - the name of the collection
+  #   reverse        - reverse the evetns. cocomp:out will be triggered if the
+  #                    comparator returns true. This is probably only needed when
+  #                    removing the collection
+  _compareCollection: (collection, options = {})->
+    collectionName = options.collectionName || @_collectionName(collection)
+    for bName, b of @_collections
+      if collectionName != bName
+        collection.forEach (aModel)=>
+          @_compareModelToCollection aModel, b, 
+            modelCollectionName: collectionName, 
+            collectionName: bName, 
+            reverse: options.reverse
 
   # Private: Compare a single model to all of the models in another collection
   #
@@ -102,7 +129,7 @@ class Backbone.CoComp
   #   reverse             - reverse the events. cocomp-out would be fired if the 
   #                         comparator results in true. This is probably only needed
   #                         when removing something from a list
-  _compareToCollection: (aModel, b, options = {})->
+  _compareModelToCollection: (aModel, b, options = {})->
     aName = options.modelCollectionName || @_collectionName(aModel.collection)
     bName = options.collectionName || @_collectionName(b)
     
@@ -137,7 +164,7 @@ class Backbone.CoComp
   #   aName - the name of the collection for the `a` model
   #   bName - the name of the collection for the `b` model
   #
-  _compareOne: (a, b, event, options = {})=>
+  _compareOne: (a, b, event, options = {})->
     aName = options.aName || @_collectionName(a.collection)
     bName = options.bName || @_collectionName(b.collection)
     
@@ -162,9 +189,9 @@ class Backbone.CoComp
   # Private: An event handler when a model is added to a list
   _onAdd: (aModel)->
     for bName, b of @_collections
-      @_compareToCollection(aModel, b, collectionName: bName)
+      @_compareModelToCollection(aModel, b, collectionName: bName)
 
   # Private: An event handler when a model is removed from a list
   _onRemove: (aModel)->
     for bName, b of @_collections
-      @_compareToCollection(aModel, b, collectionName: bName, reverse: true)
+      @_compareModelToCollection(aModel, b, collectionName: bName, reverse: true)
