@@ -1,5 +1,5 @@
 ###! 
-Backbone.CoComp v0.0.4
+Backbone.CoComp v0.0.5
 (c) 2013 David Biehl
 Backbone.CoComp may be freely distributed under the MIT license.
 For all details and documentation:
@@ -62,23 +62,33 @@ class Backbone.CoComp
   #   silent - a boolean value indicating whether or not a comparison should
   #             be executed immediately. Defaults to false
   set: (name, collection, options = {})->
-    @stopListening @_collections[name] if @_collections[name]
+    if name == 0 || name == 1
+      throw "#{name} is a reserved collection name, please use a different name"
+
+    old = @get(name)
+    @stopListening old if old
+
     @_collections[name] = collection
 
-    @listenTo @_collections[name], 'reset', @compare
-    @listenTo @_collections[name], 'add', @_onAdd
-    @listenTo @_collections[name], 'remove', @_onRemove
+    @listenTo collection, 'reset', @compare
+    @listenTo collection, 'add', @_onAdd
+    @listenTo collection, 'remove', @_onRemove
 
-    @compare() unless options.silent
+    @compare(name) unless options.silent
+
+  # Public: Get a collection by name
+  # 
+  # name - the name of the collection you want to get
+  get: (name)->
+    @_collections[name]
 
   # Public: Remove a collection from the comparisons
   # 
   # name - the name of the collection to remove
   unset: (name, options = {})->
-    collection = @_collections[name] 
-    return unless collection
+    return unless @get(name)
 
-    @_compareCollection(collection, collectionName: name, reverse: true) unless options.silent
+    @compare name, reverse: true unless options.silent
 
     delete @_collections[name]
 
@@ -86,28 +96,55 @@ class Backbone.CoComp
   #
   # This will trigger either `cocomp-in` or `cocomp-out` events
   # for each model in each collection
-  compare: ->
+  compare: (names..., options = {})->
+    unless _.isObject(options)
+      names.push(options) 
+      options = {}
+
+    compared = []
+
+    comparable = (aName, bName)->
+      # can't be the same collection
+      aName != bName &&  
+      # no names passed, or one of the collections needs to be in the names passed
+      (names.length == 0 || _.contains(names, aName) || _.contains(names, bName)) &&  
+      # can't have already been compared
+      !(_.findWhere(compared, aName: bName, bName: aName))  
+
     for aName, a of @_collections
-      @_compareCollection(a, collectionName: aName)
+      for bName, b of @_collections
+        if comparable(aName, bName)
+          compared.push aName: aName, bName: bName
+          @_compareCollections(a, b, aName: aName, bName: bName, reverse: options.reverse) 
 
-
-  # Public: Compare a single collection to the other collections
+  # Private: Compare the models in two collections
   # 
-  # collection - the collection that should be compared
+  # a - the first collection to compare
+  # b - the collection that should be compared to a
   # options
-  #   collectionName - the name of the collection
-  #   reverse        - reverse the evetns. cocomp:out will be triggered if the
-  #                    comparator returns true. This is probably only needed when
-  #                    removing the collection
-  _compareCollection: (collection, options = {})->
-    collectionName = options.collectionName || @_collectionName(collection)
-    for bName, b of @_collections
-      if collectionName != bName
-        collection.forEach (aModel)=>
-          @_compareModelToCollection aModel, b, 
-            modelCollectionName: collectionName, 
-            collectionName: bName, 
-            reverse: options.reverse
+  #   aName - the name of the a collection
+  #   bName - the name of the b collection
+  #   reverse - trigger the opposite events. Use for removal
+  #   invert - compare the models in both collections to each-other. 
+  #            Set to false to do a one-way comparison. Used to stop
+  #            recursion
+  _compareCollections: (a, b, options = {})->
+    aName = options.aName || @_collectionName(a)
+    bName = options.bName || @_collectionName(b)
+    options.invert = true unless _.has(options, 'invert')
+
+    if aName != bName
+      a.forEach (aModel)=>
+        @_compareModelToCollection aModel, b,
+          modelCollectionName: aName
+          collectionName: bName
+          reverse: options.reverse
+
+      if options.invert
+        @_compareCollections b, a,
+          aName: bName,
+          bName: aName,
+          invert: false
 
   # Private: Compare a single model to all of the models in another collection
   #
@@ -167,8 +204,8 @@ class Backbone.CoComp
     bName = options.bName || @_collectionName(b.collection)
     
     obj = {}
-    obj[aName] = a
-    obj[bName] = b
+    obj[aName] = obj[0] = a
+    obj[bName] = obj[1] = b
 
     if @comparator.call(@comparator, obj)
       b.trigger "#{event}:#{aName}", a
