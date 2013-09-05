@@ -152,13 +152,19 @@
         box2.remove(model);
         return expect(spy.callback.calls.length).toEqual(1);
       });
-      return it("triggers the events when `compare()` is called", function() {
+      it("triggers the events when `compare()` is called", function() {
         box1.add(model);
         box2.add(model);
         model.on('cocomp:in:box1', spy.callback);
         model.on('cocomp:in:box2', spy.callback);
         cocomp.compare();
         return expect(spy.callback.calls.length).toEqual(2);
+      });
+      return it("triggers the events on `reset`", function() {
+        box1.add(model);
+        model.on('cocomp:out:box2', spy.callback);
+        box2.trigger('reset');
+        return expect(spy.callback).toHaveBeenCalled();
       });
     });
   });

@@ -1,5 +1,5 @@
 ###! 
-Backbone.CoComp v0.0.5
+Backbone.CoComp v0.0.6
 (c) 2013 David Biehl
 Backbone.CoComp may be freely distributed under the MIT license.
 For all details and documentation:
@@ -70,7 +70,8 @@ class Backbone.CoComp
 
     @_collections[name] = collection
 
-    @listenTo collection, 'reset', @compare
+    @listenTo collection, 'reset', ->
+      @compare(name)
     @listenTo collection, 'add', @_onAdd
     @listenTo collection, 'remove', @_onRemove
 

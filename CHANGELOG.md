@@ -1,5 +1,10 @@
 # CHANGELOG
 
+### v0.0.6
+
+* When a `reset` event is triggered on a collection, it will only compare
+  that collection using the compare by name feature in v0.0.5
+  
 ### v0.0.5
 
 * Added `names...` parameter to `#compare` to only compare the collection(s) 

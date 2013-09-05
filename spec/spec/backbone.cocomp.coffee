@@ -151,4 +151,10 @@ describe "Backbone.CoComp", ->
       cocomp.compare()
       
       expect(spy.callback.calls.length).toEqual(2)
+
+    it "triggers the events on `reset`", ->
+      box1.add model
+      model.on 'cocomp:out:box2', spy.callback
+      box2.trigger 'reset'
+      expect(spy.callback).toHaveBeenCalled()
       
