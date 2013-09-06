@@ -70,7 +70,8 @@ class Backbone.CoComp
 
     @_collections[name] = collection
 
-    @listenTo collection, 'add remove reset', ->
+    @listenTo collection, 'add remove', @_onChange
+    @listenTo collection, 'reset', ->
       @compare(name)
 
     @compare(name) unless options.silent
@@ -92,6 +93,10 @@ class Backbone.CoComp
     delete @_collections[name]
 
   # Public: Compare all of the models in all of the collections
+  #
+  # names... - the names of the collctions that should be compared
+  # options - 
+  #   reverse - trigger the `out` event on a match
   #
   # This will trigger either `cocomp-in` or `cocomp-out` events
   # for each model in each collection
@@ -123,7 +128,7 @@ class Backbone.CoComp
   # options
   #   aName - the name of the a collection
   #   bName - the name of the b collection
-  #   reverse - trigger the opposite events. Use for removal
+  #   reverse - trigger the `out` event on a match
   #   invert - compare the models in both collections to each-other. 
   #            Set to false to do a one-way comparison. Used to stop
   #            recursion
@@ -131,13 +136,15 @@ class Backbone.CoComp
     aName = options.aName || @_collectionName(a)
     bName = options.bName || @_collectionName(b)
     options.invert = true unless _.has(options, 'invert')
+    event = "in"
+    event = "out" if options.reverse
 
     if aName != bName
       a.forEach (aModel)=>
         @_compareModelToCollection aModel, b,
           modelCollectionName: aName
           collectionName: bName
-          reverse: options.reverse
+          event: event
 
       if options.invert
         @_compareCollections b, a,
@@ -156,31 +163,35 @@ class Backbone.CoComp
   # aModel - the model that should be compared
   # b      - the collection to compare aModel against
   # options
-  #   modelCollectionName - the name of the collection the model belongs to
+  #   modelCollectionName - Required. The name of the collection the model belongs to
   #   collectionName      - the name of the that should be fired with the event
   #                         if not provided, the collection name will be looked
   #                         up from aModel
-  #   reverse             - reverse the events. cocomp-out would be fired if the 
-  #                         comparator results in true. This is probably only needed
-  #                         when removing something from a list
+  #   event               - the event that should be triggered on a match.
+  #                         Defaults to "in"
+  #   invert              - call the events on both models. Defaults to false.
+  #                         Only set this to true if the collections aren't already
+  #                         being compared in both directions
   _compareModelToCollection: (aModel, b, options = {})->
     aName = options.modelCollectionName || throw "modelCollectionName is required" 
     bName = options.collectionName || @_collectionName(b)
+    event = options.event || "in"
     
     if aName != bName
-      if options.reverse
-        inEvent = "cocomp:out"
-      else
-        inEvent = "cocomp:in"
-
       inCollection = false
       b.forEach (bModel)=>
-        exists = @_compareOne(aModel, bModel, inEvent, aName: aName, bName: bName)
-        inCollection = inCollection || exists
+        aExists = @_compareOne(aModel, bModel, event, aName: aName, bName: bName)
+        bExists = @_compareOne(bModel, aModel, event, aName: bName, bName: aName) if options.invert
 
-      unless inCollection
-        aModel.trigger "cocomp:out:#{bName}"
-        aModel.trigger "cocomp:out"
+        inCollection = inCollection || aExists || bExists
+
+      if !inCollection && event != "out"
+        @_trigger aModel, "out", bName
+
+  _trigger: (model, event, name)->
+    throw "Invalid event: #{event}" unless _.contains(["in", "out"], event)
+    model.trigger "cocomp:#{event}:#{name}"
+    model.trigger "cocomp:#{event}"
 
 
   # Private: Compare two models and trigger the event specified if
@@ -195,8 +206,8 @@ class Backbone.CoComp
   #         model knows the name of the collection it is being
   #         compared to
   # options
-  #   aName - the name of the collection for the `a` model
-  #   bName - the name of the collection for the `b` model
+  #   aName - Required. The name of the collection for the `a` model
+  #   bName - Required. The name of the collection for the `b` model
   #
   _compareOne: (a, b, event, options = {})->
     aName = options.aName || throw "aName is required"
@@ -207,9 +218,7 @@ class Backbone.CoComp
     obj[bName] = obj[1] = b
 
     if @comparator.call(@comparator, obj)
-      b.trigger "#{event}:#{aName}", a
-      b.trigger "#{event}", a
-
+      @_trigger b, event, aName
       true
     else
       false
@@ -220,3 +229,25 @@ class Backbone.CoComp
   _collectionName: (collection)->
     for cName, c of @_collections
       return cName if c == collection
+
+  # Private: An event handler for `add` and `remove` events.
+  # 
+  # Triggers the `in` or `out` events depending on whether or not
+  # the model is being added or removed from the collection
+  #
+  # model - the model being added/removed
+  # collection - the collection that received the event
+  # e - information about the event
+  _onChange: (model, collection, e)->
+    event = "in"
+    event = "out" unless e.add
+
+    aName = @_collectionName(collection)
+    @_trigger model, event, aName
+
+    for bName, b of @_collections
+      @_compareModelToCollection model, b, 
+        modelCollectionName: aName, 
+        collectionName: bName, 
+        invert: true, 
+        event: event

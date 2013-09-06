@@ -129,34 +129,66 @@
         });
       });
     });
-    return describe("the event system", function() {
+    describe("the `add` event", function() {
       beforeEach(function() {
         cocomp.set("box1", box1);
         return cocomp.set("box2", box2);
       });
-      it("triggers an `out` event when the other box is empty", function() {
+      it("triggers an `out` event for the box the model isn't in", function() {
         model.on('cocomp:out:box2', spy.callback);
         box1.add(model);
         return expect(spy.callback.calls.length).toEqual(1);
       });
-      it("triggers an `in` event when the model is in both boxes", function() {
-        box2.add(model);
-        model.on('cocomp:in:box2', spy.callback);
+      it("triggers an `in` event for the box the model is being added to", function() {
+        model.on('cocomp:in:box1', spy.callback);
         box1.add(model);
         return expect(spy.callback.calls.length).toEqual(1);
       });
-      it("triggers an `out` event when the model has been removed", function() {
+      it("triggers an `in` event for the box the model is already in", function() {
         box1.add(model);
+        model.on('cocomp:in:box1', spy.callback);
         box2.add(model);
-        model.on('cocomp:out:box2', spy.callback);
-        box2.remove(model);
         return expect(spy.callback.calls.length).toEqual(1);
       });
-      it("triggers an `in` event when the model is added to another box", function() {
+      return it("doesn't trigger events on other models", function() {
+        box1.add(model2);
+        box2.add(model2);
+        model2.on('cocomp:in:box1', spy.callback);
         box1.add(model);
-        model.on('cocomp:in:box2', spy.callback);
-        box2.add(model);
+        return expect(spy.callback).not.toHaveBeenCalled();
+      });
+    });
+    describe("the `remove` event", function() {
+      beforeEach(function() {
+        cocomp.set("box1", box1);
+        return cocomp.set("box2", box2);
+      });
+      it("triggers an `out` event for the box the model is removed from", function() {
+        box1.add(model);
+        model.on('cocomp:out:box1', spy.callback);
+        box1.remove(model);
         return expect(spy.callback.calls.length).toEqual(1);
+      });
+      it("triggers an `out` event for the other boxes the model is in", function() {
+        box1.add(model);
+        box2.add(model);
+        model.on('cocomp:out:box1', spy.callback);
+        box1.remove(model);
+        return expect(spy.callback.calls.length).toEqual(2);
+      });
+      return it("doesn't trigger events on other models", function() {
+        box1.add(model2);
+        box2.add(model2);
+        box1.add(model);
+        model2.on('cocomp:in:box1', spy.callback);
+        box1.remove(model);
+        return expect(spy.callback).not.toHaveBeenCalled();
+      });
+    });
+    return describe("the event system", function() {
+      beforeEach(function() {
+        cocomp.set("box1", box1);
+        return cocomp.set("box2", box2);
       });
       it("triggers the events when `compare()` is called", function() {
         box1.add(model);

@@ -115,39 +115,71 @@ describe "Backbone.CoComp", ->
         cocomp.compare(["box1", "box2"])
         expect(spy.callback).toHaveBeenCalled()
 
+  describe "the `add` event", ->
+    beforeEach ->
+      cocomp.set "box1", box1
+      cocomp.set "box2", box2
+
+    it "triggers an `out` event for the box the model isn't in", ->
+      model.on 'cocomp:out:box2', spy.callback
+      
+      box1.add model
+      expect(spy.callback.calls.length).toEqual(1)
+
+    it "triggers an `in` event for the box the model is being added to", ->
+      model.on 'cocomp:in:box1', spy.callback
+
+      box1.add model
+      expect(spy.callback.calls.length).toEqual(1)
+
+    it "triggers an `in` event for the box the model is already in", ->
+      box1.add model
+      model.on 'cocomp:in:box1', spy.callback
+
+      box2.add model
+      expect(spy.callback.calls.length).toEqual(1)
+
+    it "doesn't trigger events on other models", ->
+      box1.add model2
+      box2.add model2
+
+      model2.on 'cocomp:in:box1', spy.callback
+      box1.add model
+      expect(spy.callback).not.toHaveBeenCalled()
+
+  describe "the `remove` event", ->
+    beforeEach ->
+      cocomp.set "box1", box1
+      cocomp.set "box2", box2
+
+    it "triggers an `out` event for the box the model is removed from", ->
+      box1.add model
+      model.on 'cocomp:out:box1', spy.callback
+
+      box1.remove model
+      expect(spy.callback.calls.length).toEqual(1)
+
+    it "triggers an `out` event for the other boxes the model is in", ->
+      box1.add model
+      box2.add model
+      model.on 'cocomp:out:box1', spy.callback
+
+      box1.remove model
+      expect(spy.callback.calls.length).toEqual(2)
+
+    it "doesn't trigger events on other models", ->
+      box1.add model2
+      box2.add model2
+      box1.add model
+
+      model2.on 'cocomp:in:box1', spy.callback
+      box1.remove model
+      expect(spy.callback).not.toHaveBeenCalled()
+
   describe "the event system", ->
     beforeEach ->
       cocomp.set "box1", box1
       cocomp.set "box2", box2
-    
-    it "triggers an `out` event when the other box is empty", ->
-      model.on 'cocomp:out:box2', spy.callback
-      
-      box1.add model
-      expect(spy.callback.calls.length).toEqual(1)
-      
-    it "triggers an `in` event when the model is in both boxes", ->
-      box2.add model
-      
-      model.on 'cocomp:in:box2', spy.callback
-      box1.add model
-      expect(spy.callback.calls.length).toEqual(1)
-
-    it "triggers an `out` event when the model has been removed", ->
-      box1.add model
-      box2.add model
-      
-      model.on 'cocomp:out:box2', spy.callback
-      box2.remove model
-      
-      expect(spy.callback.calls.length).toEqual(1)
-
-    it "triggers an `in` event when the model is added to another box", ->
-      box1.add model
-
-      model.on 'cocomp:in:box2', spy.callback
-      box2.add model
-      expect(spy.callback.calls.length).toEqual(1)
       
     it "triggers the events when `compare()` is called", ->
       box1.add model
@@ -164,4 +196,3 @@ describe "Backbone.CoComp", ->
       model.on 'cocomp:out:box2', spy.callback
       box2.trigger 'reset'
       expect(spy.callback).toHaveBeenCalled()
-      
