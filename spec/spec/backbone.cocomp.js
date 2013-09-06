@@ -152,6 +152,12 @@
         box2.remove(model);
         return expect(spy.callback.calls.length).toEqual(1);
       });
+      it("triggers an `in` event when the model is added to another box", function() {
+        box1.add(model);
+        model.on('cocomp:in:box2', spy.callback);
+        box2.add(model);
+        return expect(spy.callback.calls.length).toEqual(1);
+      });
       it("triggers the events when `compare()` is called", function() {
         box1.add(model);
         box2.add(model);

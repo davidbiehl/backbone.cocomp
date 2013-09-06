@@ -1,5 +1,12 @@
 # CHANGELOG
 
+* Bug fix: An `in` event wasn't being called on the model for the collection
+  it was being added to. Now when a model is added or removed, the 
+  comparison is run on that entire collection. Not ideal, but all of the
+  tests pass.
+* No longer relies on model.collection to determine the collection name. If a single
+  model is part of two collections, this is unreliable.
+
 ### v0.0.6
 
 * When a `reset` event is triggered on a collection, it will only compare

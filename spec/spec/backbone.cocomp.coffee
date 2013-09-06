@@ -132,7 +132,7 @@ describe "Backbone.CoComp", ->
       model.on 'cocomp:in:box2', spy.callback
       box1.add model
       expect(spy.callback.calls.length).toEqual(1)
-      
+
     it "triggers an `out` event when the model has been removed", ->
       box1.add model
       box2.add model
@@ -140,6 +140,13 @@ describe "Backbone.CoComp", ->
       model.on 'cocomp:out:box2', spy.callback
       box2.remove model
       
+      expect(spy.callback.calls.length).toEqual(1)
+
+    it "triggers an `in` event when the model is added to another box", ->
+      box1.add model
+
+      model.on 'cocomp:in:box2', spy.callback
+      box2.add model
       expect(spy.callback.calls.length).toEqual(1)
       
     it "triggers the events when `compare()` is called", ->

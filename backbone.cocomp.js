@@ -37,11 +37,9 @@ https://github.com/davidbiehl/backbone.cocomp
         this.stopListening(old);
       }
       this._collections[name] = collection;
-      this.listenTo(collection, 'reset', function() {
+      this.listenTo(collection, 'add remove reset', function() {
         return this.compare(name);
       });
-      this.listenTo(collection, 'add', this._onAdd);
-      this.listenTo(collection, 'remove', this._onRemove);
       if (!options.silent) {
         return this.compare(name);
       }
@@ -148,7 +146,9 @@ https://github.com/davidbiehl/backbone.cocomp
       if (options == null) {
         options = {};
       }
-      aName = options.modelCollectionName || this._collectionName(aModel.collection);
+      aName = options.modelCollectionName || (function() {
+        throw "modelCollectionName is required";
+      })();
       bName = options.collectionName || this._collectionName(b);
       if (aName !== bName) {
         if (options.reverse) {
@@ -177,8 +177,12 @@ https://github.com/davidbiehl/backbone.cocomp
       if (options == null) {
         options = {};
       }
-      aName = options.aName || this._collectionName(a.collection);
-      bName = options.bName || this._collectionName(b.collection);
+      aName = options.aName || (function() {
+        throw "aName is required";
+      })();
+      bName = options.bName || (function() {
+        throw "bName is required";
+      })();
       obj = {};
       obj[aName] = obj[0] = a;
       obj[bName] = obj[1] = b;
@@ -200,33 +204,6 @@ https://github.com/davidbiehl/backbone.cocomp
           return cName;
         }
       }
-    };
-
-    CoComp.prototype._onAdd = function(aModel) {
-      var b, bName, _ref, _results;
-      _ref = this._collections;
-      _results = [];
-      for (bName in _ref) {
-        b = _ref[bName];
-        _results.push(this._compareModelToCollection(aModel, b, {
-          collectionName: bName
-        }));
-      }
-      return _results;
-    };
-
-    CoComp.prototype._onRemove = function(aModel) {
-      var b, bName, _ref, _results;
-      _ref = this._collections;
-      _results = [];
-      for (bName in _ref) {
-        b = _ref[bName];
-        _results.push(this._compareModelToCollection(aModel, b, {
-          collectionName: bName,
-          reverse: true
-        }));
-      }
-      return _results;
     };
 
     return CoComp;

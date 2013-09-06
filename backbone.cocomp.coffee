@@ -70,10 +70,8 @@ class Backbone.CoComp
 
     @_collections[name] = collection
 
-    @listenTo collection, 'reset', ->
+    @listenTo collection, 'add remove reset', ->
       @compare(name)
-    @listenTo collection, 'add', @_onAdd
-    @listenTo collection, 'remove', @_onRemove
 
     @compare(name) unless options.silent
 
@@ -166,7 +164,7 @@ class Backbone.CoComp
   #                         comparator results in true. This is probably only needed
   #                         when removing something from a list
   _compareModelToCollection: (aModel, b, options = {})->
-    aName = options.modelCollectionName || @_collectionName(aModel.collection)
+    aName = options.modelCollectionName || throw "modelCollectionName is required" 
     bName = options.collectionName || @_collectionName(b)
     
     if aName != bName
@@ -201,8 +199,8 @@ class Backbone.CoComp
   #   bName - the name of the collection for the `b` model
   #
   _compareOne: (a, b, event, options = {})->
-    aName = options.aName || @_collectionName(a.collection)
-    bName = options.bName || @_collectionName(b.collection)
+    aName = options.aName || throw "aName is required"
+    bName = options.bName || throw "bName is required"
     
     obj = {}
     obj[aName] = obj[0] = a
@@ -211,6 +209,7 @@ class Backbone.CoComp
     if @comparator.call(@comparator, obj)
       b.trigger "#{event}:#{aName}", a
       b.trigger "#{event}", a
+
       true
     else
       false
@@ -221,13 +220,3 @@ class Backbone.CoComp
   _collectionName: (collection)->
     for cName, c of @_collections
       return cName if c == collection
-
-  # Private: An event handler when a model is added to a list
-  _onAdd: (aModel)->
-    for bName, b of @_collections
-      @_compareModelToCollection(aModel, b, collectionName: bName)
-
-  # Private: An event handler when a model is removed from a list
-  _onRemove: (aModel)->
-    for bName, b of @_collections
-      @_compareModelToCollection(aModel, b, collectionName: bName, reverse: true)
