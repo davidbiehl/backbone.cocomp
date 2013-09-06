@@ -1,6 +1,19 @@
 # Event Based Backbone Collection Comparison
 
 Use events to compare the contents of two or more Backbone Collections.
+
+## Installation
+
+Simply include the `backbone.cocomp.js` file in your asset pipeline,
+`<script>` tag, or wherever your JavaScript assets are served.
+
+### Requirements
+
+CoComp requires Backbone.js v0.9.9 or higher. 
+The passing test suite runs against Backbone v1.0.0
+
+## Usage
+
 A sample use case: You have a collection you are adding things to, we'll 
 call it a box, and a collection for searching for things to add to the box.
 Somehow, you want to indicate in the search results what is already in the
@@ -8,8 +21,8 @@ box.
 
     # Setting up the CoComp object
 
-    boxes = new Backbone.Collection
-    searchResults = new Backbone.Collection
+    boxes = new Backbone.Collection()
+    searchResults = new Backbone.Collection()
     
     cocomp = new Backbone.CoComp
       comparator: (obj)->
@@ -53,7 +66,7 @@ When you `set` a collection, the `compare()` method will be executed
 automatically, unless you specify `compare: false` as an option when
 calling the `set` method.
 
-## The Comparator
+### The Comparator
 
 Each CoComp instance needs a `comparator`. This function should have one 
 argument, a simple JavaScript Object, with two properties: the names of 
@@ -89,7 +102,7 @@ another box to compare to search results our example is trivial.
     @listenTo @model, 'cocomp:in:box cocomp:in:another_box', @onInBox
     @listenTo @model, 'cocomp:out:box cocomp:in:another_box', @onOutBox
 
-## The Events
+### The Events
 
 The events are triggered on each model in each collection. There are basically
 two types of events that will be triggered: `cocomp:in` and `cocomp:out`.
@@ -115,6 +128,21 @@ the `cocomp:out:box` events. This way we can fine-tune our event handlers
 based on the collection the model is being compared to. Likewise, the models 
 in the "box" collection will receive `cocomp:in:search` and 
 `cocomp:out:search` events.
+
+## Contributing
+
+Pull requests are welcome. Please be aware of the following:
+
+* CoComp is written in CoffeeScript, which compiles into JavaScript. 
+  Please change the *.coffee files only, and make sure that the files you
+  change are compiled to JavaScript before submitting a pull request.
+
+  I will usually run the following while working on CoComp: `coffee -wc .`
+  This will compile the .coffee source into .js as you work.
+
+* Jasmine specs are included with this project. 
+  To run the test suite, open `spec/index.html` in your browser. 
+  Pull requests with passing tests are preferred :)
 
 ##### License
 
