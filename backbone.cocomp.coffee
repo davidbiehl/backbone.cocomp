@@ -1,10 +1,11 @@
 ###! 
-Backbone.CoComp v0.0.6
+Backbone.CoComp v0.0.7
 (c) 2013 David Biehl
 Backbone.CoComp may be freely distributed under the MIT license.
 For all details and documentation:
 https://github.com/davidbiehl/backbone.cocomp
 ###
+
 # An event based collection comparison utility
 #
 #
@@ -48,7 +49,17 @@ class Backbone.CoComp
 
   constructor: (opts = {})->
     @_collections = {}
-    @comparator = opts.comparator || throw "The CoComp requires a comparator"
+
+    if _.isFunction(opts.comparator)
+      @comparator = opts.comparator
+    else
+      if opts.comparator == "==="
+        @comparator = (obj)->
+          obj[0] == obj[1]
+      else
+        attr = opts.comparator || "id"
+        @comparator = (obj)->
+          obj[0].get(attr) == obj[1].get(attr)
 
   # Public: Set a collection that will be compared to the other collections
   #

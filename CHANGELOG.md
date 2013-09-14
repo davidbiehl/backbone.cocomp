@@ -1,7 +1,9 @@
 # CHANGELOG
 
-### master
+### v0.0.7
 
+* Compares models by `id` by default. Other comparator options are available
+  as well.
 * Bug fix: An `in` event wasn't being called on the model for the collection
   it was being added to. 
 * No longer relies on `model.collection` to determine the collection name. If a single

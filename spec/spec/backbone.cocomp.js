@@ -25,12 +25,12 @@
       return spyOn(spy, 'callback');
     });
     describe("#constructor", function() {
-      return it("requires a `comparator`", function() {
+      return it("doesn't require a `comparator`", function() {
         var instanciate;
         instanciate = function() {
           return new Backbone.CoComp;
         };
-        return expect(instanciate).toThrow();
+        return expect(instanciate).not.toThrow();
       });
     });
     describe("#unset", function() {
@@ -185,7 +185,7 @@
         return expect(spy.callback).not.toHaveBeenCalled();
       });
     });
-    return describe("the event system", function() {
+    describe("the event system", function() {
       beforeEach(function() {
         cocomp.set("box1", box1);
         return cocomp.set("box2", box2);
@@ -203,6 +203,62 @@
         model.on('cocomp:out:box2', spy.callback);
         box2.trigger('reset');
         return expect(spy.callback).toHaveBeenCalled();
+      });
+    });
+    return describe("default comparators", function() {
+      var bert, compare, ernie;
+      bert = new Backbone.Model({
+        id: 1,
+        name: "bert",
+        type: "puppet"
+      });
+      ernie = new Backbone.Model({
+        id: 2,
+        name: "ernie",
+        type: "puppet"
+      });
+      compare = function(a, b) {
+        var obj;
+        obj = {};
+        obj["a"] = obj[0] = a;
+        obj["b"] = obj[1] = b;
+        return comparator(obj);
+      };
+      it("will compare by id", function() {
+        cocomp = new Backbone.CoComp;
+        comparator = cocomp.comparator;
+        expect(compare(bert, bert)).toBe(true);
+        return expect(compare(bert, ernie)).toBe(false);
+      });
+      describe("compare equality", function() {
+        beforeEach(function() {
+          cocomp = new Backbone.CoComp({
+            comparator: "==="
+          });
+          return comparator = cocomp.comparator;
+        });
+        it("returns true when comparing the same object", function() {
+          return expect(compare(bert, bert)).toBe(true);
+        });
+        return it("returns false when comparing different objects", function() {
+          return expect(compare(bert, ernie)).toBe(false);
+        });
+      });
+      return describe("compare by an attribute", function() {
+        it("returns true when the attribute values are the same", function() {
+          cocomp = new Backbone.CoComp({
+            comparator: "type"
+          });
+          comparator = cocomp.comparator;
+          return expect(compare(bert, ernie)).toBe(true);
+        });
+        return it("returns false when the attribute values are different", function() {
+          cocomp = new Backbone.CoComp({
+            comparator: "name"
+          });
+          comparator = cocomp.comparator;
+          return expect(compare(bert, ernie)).toBe(false);
+        });
       });
     });
   });

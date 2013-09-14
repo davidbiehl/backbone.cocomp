@@ -21,10 +21,11 @@ describe "Backbone.CoComp", ->
     spyOn spy, 'callback'
 
   describe "#constructor", ->
-    it "requires a `comparator`", ->
+    it "doesn't require a `comparator`", ->
       instanciate = ->
         new Backbone.CoComp
-      expect(instanciate).toThrow()
+      expect(instanciate).not.toThrow()
+
 
   describe "#unset", ->
     it "removes the collection", ->
@@ -196,3 +197,49 @@ describe "Backbone.CoComp", ->
       model.on 'cocomp:out:box2', spy.callback
       box2.trigger 'reset'
       expect(spy.callback).toHaveBeenCalled()
+
+  describe "default comparators", ->
+    bert = new Backbone.Model({id: 1, name: "bert", type: "puppet"})
+    ernie = new Backbone.Model({id: 2, name: "ernie", type: "puppet"})
+
+    compare = (a, b)->
+      obj = {}
+      obj["a"] = obj[0] = a
+      obj["b"] = obj[1] = b
+
+      comparator(obj)
+
+    it "will compare by id", ->
+      cocomp = new Backbone.CoComp
+      comparator = cocomp.comparator
+
+      expect(compare(bert, bert)).toBe(true)
+      expect(compare(bert, ernie)).toBe(false)
+      
+    describe "compare equality", ->
+      beforeEach ->
+        cocomp = new Backbone.CoComp comparator: "==="
+        comparator = cocomp.comparator
+
+      it "returns true when comparing the same object", ->
+        expect(compare(bert, bert)).toBe(true)
+
+      it "returns false when comparing different objects", ->
+        expect(compare(bert, ernie)).toBe(false)
+
+    describe "compare by an attribute", ->
+      it "returns true when the attribute values are the same", ->
+        cocomp = new Backbone.CoComp comparator: "type"
+        comparator = cocomp.comparator
+
+        expect(compare(bert, ernie)).toBe(true)
+
+      it "returns false when the attribute values are different", ->
+        cocomp = new Backbone.CoComp comparator: "name"
+        comparator = cocomp.comparator
+
+        expect(compare(bert, ernie)).toBe(false)
+
+
+
+
