@@ -8,21 +8,20 @@ Simply include the
 [backbone.cocomp.js](https://raw.github.com/davidbiehl/backbone.cocomp/master/backbone.cocomp.js) 
 file in your asset pipeline, `<script>` tag, or wherever your JavaScript assets are served.
 
-### The State of Things
-
-This library is pretty stable as of version 0.0.7. 
-CoComp is being developed using Test Driven Development practices to ensure
-that new bugs aren't introduced as the project progresses. 
-
-
 ### Requirements
 
 CoComp requires Backbone.js v0.9.9 or higher. 
 The passing test suite runs against Backbone v1.0.0.
 
+#### The State of Things
+
+This library is pretty stable as of version 0.0.7. 
+CoComp is being developed using Test Driven Development practices to ensure
+that new bugs aren't introduced as the project progresses. 
+
 ## Usage
 
-*See Backbon.CoComp in action on [jsfiddle](http://jsfiddle.net/davidbiehl/WQ9uc/)*
+**See Backbone.CoComp in action on [jsfiddle](http://jsfiddle.net/davidbiehl/WQ9uc/)**
 
 A sample use case: You have a collection you are adding things to, we'll 
 call it a box, and a collection for searching for things to add to the box.
@@ -30,9 +29,7 @@ Somehow, you want to indicate in the search results what is already in the
 box. 
 
 
-### Step by Step
-
-#### Setup
+### Getting Started
 
 The first thing to do is to create an instance of `Backbone.CoComp`. By
 default it will compare the models in each collection with the `id` attribute.
@@ -40,10 +37,13 @@ default it will compare the models in each collection with the `id` attribute.
     cocomp = new Backbone.CoComp()
 
 Next the collections that will be compared need to be `set` on our
-CoComp instance. Each collection is set with a name. This will
+CoComp instance. Each collection is `set` with a name. This will
 become important when setting up event listeners on the models.
 
-    cocomp.set("box", boxes)
+    box = new Backbone.Collection()
+    searchResults = new Backbone.Collection()
+
+    cocomp.set("box", box)
     cocomp.set("search", searchResults)
 
 As soon as the collections are `set`, the CoComp events will immediately
@@ -53,7 +53,7 @@ a `silent: true` option when calling `set`. This would only apply
 when setting the collection, and future `add`, `remove` and `reset`
 events on the collection would not be silent. 
 
-    cocomp.set("box", boxes, {silent: true})
+    cocomp.set("box", box, {silent: true})
 
 #### Events
 
@@ -61,7 +61,7 @@ The events are named like so: `cocomp:in:<collection_name>`
 and `cocomp:out:<collection_name>`. 
 CoComp will respond to `add`, `remove` and `reset` events on each collection.
 The events will also be triggered when `set`ting a new collection on a 
-CoComp instance (unless you use the `silent: true` option.
+CoComp instance (unless you use the `silent: true` option).
 
 Let's walk through this. If a model is added to the `searchResults` collection, 
 the model will receive two events.
@@ -80,7 +80,7 @@ Notice that the collection name when calling `set` is used in the event.
 Now the same model is added to the collection named `box`. This will trigger 
 a `cocomp:in` event on the `box` collection (`cocomp:in:box`).
 
-   boxes.add(model)  # cocomp:in:box
+    box.add(model)  # cocomp:in:box
 
 Now that our box has a model, let's `reset` the `searchResults` simulating
 receiving data from the server.
@@ -97,11 +97,11 @@ receiving data from the server.
     # id: 2  =>  cocomp:out:box
     # id: 3  =>  cocomp:out:box
 
-If we remove the model from the `boxes` collection, it would receive a `cocomp:out` event
+If we remove the model from the `box` collection, it would receive a `cocomp:out` event
 from the `box` collection (`cocomp:out:box`). The corresponding model in the `searchResults`
 collection would also receive this event.
 
-    boxes.remove(model)  # cocomp:out:box
+    box.remove(model)  # cocomp:out:box
 
 If, at any time, we want CoComp to compare the collection manually, simply call the `compare`
 method on the CoComp instance.
@@ -111,7 +111,8 @@ method on the CoComp instance.
 #### Setting up Event Listeners in a View
 
 Now we just need to setup an event listener in our view to respond to the events. 
-We're going to do this in a `SearchResult` view. Basically, if the search result
+We're going to do this in a `SearchResult` view, which handles a single model in the 
+`searchResults` collection.. Basically, if the search result
 is already in the `box` collection, we want it to appear faded.
 
     # In our SearchResult view
@@ -135,7 +136,7 @@ Here is the final result, in one piece of CoffeeScript.
 
     # Setting up some Collections 
 
-    boxes = new Backbone.Collection()
+    box = new Backbone.Collection()
     searchResults = new Backbone.Collection()
     
 
@@ -143,7 +144,7 @@ Here is the final result, in one piece of CoffeeScript.
 
     cocomp = new Backbone.CoComp()
 
-    cocomp.set "box", boxes
+    cocomp.set "box", box
     cocomp.set "search", searchResults
 
 
@@ -200,9 +201,9 @@ If you need to CoComp to compare the exact model instance, use the
 #### Providing a Custom Comparator
 
 If you really need to get crazy, you can specify the comparator function
-yourself. The function should receive a single argument, and return true
+yourself. The function should receive a single argument, and return `true`
 if the two models are equal (which would trigger a `cocomp:in` event) or
-false if they are not (which would trigger a `cocomp:out` event). 
+`false` if they are not (which would trigger a `cocomp:out` event). 
 
 #### The Comparator Argument
 
@@ -237,8 +238,8 @@ This is also a good way to compare more than two collections. Using the
 box and search result example above, we could compare the search results
 to multiple boxes. (CoffeeScript)
 
-    cocomp.set("box1", boxes)
-    cocomp.set("box2", moreBoxes)
+    cocomp.set("box1", box)
+    cocomp.set("box2", box2)
     cocomp.set("search", searchResults)
 
     comparator = (obj)->
