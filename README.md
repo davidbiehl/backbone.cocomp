@@ -4,15 +4,18 @@ Use events to compare the contents of two or more Backbone Collections.
 
 ## Installation
 
-Simply include the `backbone.cocomp.js` file in your asset pipeline,
-`<script>` tag, or wherever your JavaScript assets are served.
+Simply include the 
+[backbone.cocomp.js](https://raw.github.com/davidbiehl/backbone.cocomp/master/backbone.cocomp.js) 
+file in your asset pipeline, `<script>` tag, or wherever your JavaScript assets are served.
 
 ### Requirements
 
 CoComp requires Backbone.js v0.9.9 or higher. 
-The passing test suite runs against Backbone v1.0.0
+The passing test suite runs against Backbone v1.0.0.
 
 ## Usage
+
+*See Backbon.CoComp in action on [jsfiddle](http://jsfiddle.net/davidbiehl/WQ9uc/)*
 
 A sample use case: You have a collection you are adding things to, we'll 
 call it a box, and a collection for searching for things to add to the box.
